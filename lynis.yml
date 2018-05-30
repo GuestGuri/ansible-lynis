@@ -1,0 +1,46 @@
+- hosts: web
+  tasks:
+
+    - block:
+       - name: Create audit directory
+         file: 
+           path: /home/vagrant/audit
+           state: directory
+           mode: 0755
+         ignore_errors: yes
+
+       - name: Copying lynis files to remote host
+         copy:
+           src: ~/Downloads/lynis-2.6.4.tar.gz
+           dest: /home/vagrant/audit/lynis2.6.4.tar.gz
+         ignore_errors: yes
+
+       - name: Extract lynis archive
+         unarchive:
+           src: /home/vagrant/audit/lynis2.6.4.tar.gz
+           dest: /home/vagrant/audit/
+           remote_src: yes
+           copy: no
+         ignore_errors: yes
+ 
+       - name: Executing lynis audit on remote host
+         shell: chdir=/home/vagrant/audit/lynis ./lynis audit system --report-file report.txt --no-log
+         ignore_errors: yes
+   
+       - name: Exporting audit report to localhost
+         fetch:
+           src: /home/vagrant/audit/lynis/report.txt
+           dest: ~/Desktop
+         ignore_errors: yes
+    
+
+      always:
+       - name: I am always running
+         file: 
+           state: absent
+           path: "/home/vagrant/audit"
+
+
+
+
+
